@@ -1,17 +1,19 @@
 import re
 import pandas as pd
 from nltk.corpus import stopwords
+from transformers import BertTokenizer, BertForSequenceClassification, Trainer, TrainingArguments
 import nltk
 import ssl
+
 # Configure SSL context to bypass SSL verification
-# try:
-#     _create_unverified_https_context = ssl._create_unverified_context
-# except AttributeError:
-#     pass
-# else:
-#     ssl._create_default_https_context = _create_unverified_https_context
+try:
+    _create_unverified_https_context = ssl._create_unverified_context
+except AttributeError:
+    pass
+else:
+    ssl._create_default_https_context = _create_unverified_https_context
 # Download the stopwords from NLTK
-# nltk.download('stopwords')
+nltk.download('stopwords')
 stop_words = set(stopwords.words('english'))
 # Load DataSet
 DataSet = pd.read_csv('Twitter_Data.csv', index_col= False)
