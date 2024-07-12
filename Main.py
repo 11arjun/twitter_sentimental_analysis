@@ -37,12 +37,15 @@ tokenizer = RobertaTokenizer.from_pretrained('roberta-base')
 def tokenize_text(text):
     return tokenizer(text, truncation=True, padding='max_length', max_length=512)
 
-# Let's apply removing stop words in a clean data
-data['tokenized'] = data['clean_data'].apply(tokenize_text)
-# Check the tokenized data
-print("Tokenized Data (first 5 rows):")
-for i in range(5):
-    print(f"Row {i}:")
-    print("Input IDs:", data['tokenized'].iloc[i]['input_ids'])
-    print("Attention Mask:", data['tokenized'].iloc[i]['attention_mask'])
+# Let's apply the tokenization function
+data['tokenized'] = data['clean_data'].apply( lambda  x: tokenize_text(x))
+# Let's extract it to view the Id's and attention mask
+def Extratcions(tokenized):
+    return tokenized['input_ids']
+
+data['input_ids'] = data['tokenized'] .apply(lambda x: x['input_ids'])
+data['attention_mask'] = data['tokenized'].apply(lambda x: x['attention_mask'])
+
+# Print Tokenization
 print(" Tokenize text\n ", data['clean_data'].head() ,'\n', data['tokenized'].head())
+print("Extractions Id's" , data[['input_ids', 'attention_mask']].head())
