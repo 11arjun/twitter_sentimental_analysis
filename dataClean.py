@@ -1,26 +1,34 @@
 import re
+import ssl
+
 import pandas as pd
-from nltk import PorterStemmer, WordNetLemmatizer
-from nltk.corpus import stopwords
+from nltk import PorterStemmer, WordNetLemmatizer, SnowballStemmer, tag
+from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
 from nltk import pos_tag
 import emoji
 import nltk
+import contractions
+from textblob import TextBlob
+
+#  Bypass SSL verification
+ssl._create_default_https_context = ssl._create_unverified_context
 # Download the stopwords from NLTK
 print("Downloading NLTK data...")
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
+nltk.download('punkt', force=True)
+nltk.download('stopwords' , force=True)
+nltk.download('wordnet' , force=True)
 nltk.download('averaged_perceptron_tagger')  # POS tagger
 
 stop_words = set(stopwords.words('english'))
-stemmer = PorterStemmer()
+stemmer = SnowballStemmer('english')
 lemmatizer = WordNetLemmatizer()
 
 # Load DataSet
 DataSet = pd.read_csv('Twitter_Data.csv', index_col=False)
-Data = pd.DataFrame(DataSet)
-
+Datas = pd.DataFrame(DataSet)
+# Taking .5 % datas from the set
+Data = Datas.sample(frac=0.005, random_state=42)
 # Let's check missing value, it gives you the sum of missing values
 missing_values = Data.isna().sum()
 print("Missing Values:", missing_values)
@@ -30,7 +38,18 @@ Data = Data.dropna()
 
 # Let's lower case every letter
 Data['clean_text'] = Data['clean_text'].str.casefold()
-
+# Helper function to convert POS tags to WordNet POS tags
+def get_wordnet_pos(tag):
+    if tag.startswith('J'):
+        return wordnet.ADJ
+    elif tag.startswith('V'):
+        return wordnet.VERB
+    elif tag.startswith('N'):
+        return wordnet.NOUN
+    elif tag.startswith('R'):
+        return wordnet.ADV
+    else:
+        return wordnet.NOUN
 # Text Processing
 # Let's make a function that handles unwanted words and all
 def cleanText(text):
@@ -56,21 +75,29 @@ def cleanText(text):
     text = re.sub(r'#(\w+)',r'\1', text)
     # Remove dashes
     text = re.sub(r'-{1,}', '', text)
-    return text
+    # Let's use contractions
+    text = contractions.fix(text)
+    # Let's correct the spelling using Textblob
+    text = str(TextBlob(text).correct())
+    # Let's Tokenize
+    tokenize = word_tokenize(text)
+    # Let' perform stemming now, the stemmed tokens are joined back into a single string.
+    stemmed = [stemmer.stem(word) for word in tokenize]
+    # Let's perform pos tagging now
+    pos_tags =pos_tag(stemmed)
+    # Let's perform Lemmatizations now
+    lemma = [lemmatizer.lemmatize(words, get_wordnet_pos(tag)) for words, tag in pos_tags]
+    return ' '. join(lemma)
+
 # Apply the cleanText function
 Data['freshData'] = Data['clean_text'].apply(cleanText)
 print("Fresh Data:\n", Data['freshData'].head())
 # Now lets Apply tokenizing,stemming,lemmatizing and part of speech at once
-def preProcess(data):
-    # Tokenizing
-    # data = word_tokenize(data)
-    # Stemming
-    data = [stemmer.stem(word) for word in data]
-    # Lemmatization
-    data = [lemmatizer.lemmatize(word) for word in data]
-    # POS Tagging
-    data = pos_tag(data)
-    return data
-Data['preProcess'] = Data['freshData'].apply(preProcess)
-print(" New Process Data", Data['preProcess'].head())
+# Lets perform tokenizing and stemming
+def stemText(data):
+    tokens = word_tokenize(data)
+    stemmed = [stemmer.stem(word) for word in tokens]
+    return '' .join (stemmed)
 
+# Data['preProcess'] = Data['freshData'].apply(preProcess)
+print(" New Process Data", Data['preProcess'].head())
