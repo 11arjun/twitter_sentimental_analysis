@@ -9,6 +9,7 @@ from nltk import pos_tag
 import emoji
 import nltk
 import contractions
+from gensim.models import Word2Vec
 from textblob import TextBlob
 
 #  Bypass SSL verification
@@ -91,13 +92,15 @@ def cleanText(text):
 
 # Apply the cleanText function
 Data['freshData'] = Data['clean_text'].apply(cleanText)
-print("Fresh Data:\n", Data['freshData'].head())
-# Now lets Apply tokenizing,stemming,lemmatizing and part of speech at once
-# Lets perform tokenizing and stemming
-def stemText(data):
-    tokens = word_tokenize(data)
-    stemmed = [stemmer.stem(word) for word in tokens]
-    return '' .join (stemmed)
+print("Fresh Data:\n", Data['freshData'].head(10))
 
-# Data['preProcess'] = Data['freshData'].apply(preProcess)
-print(" New Process Data", Data['preProcess'].head())
+# Let's apply WordVec Algorithms now
+# Let's Train the WordVec model
+word2vec_model = Word2Vec(sentences= Data['freshData'], vector_size=100,window=5, min_count= 2, workers=4)
+# Lets save the model , so we can train using Deep Learning Models
+model_path = "word2vec_model"
+word2vec_model.save(model_path)
+# Let's load the model now
+loadModel = word2vec_model.load(model_path)
+# Let's get the vector of a word now
+wordVector = loadModel.vw()
