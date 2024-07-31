@@ -1,6 +1,7 @@
 import re
 import ssl
 
+import numpy as np
 import pandas as pd
 from nltk import PorterStemmer, WordNetLemmatizer, SnowballStemmer, tag
 from nltk.corpus import stopwords, wordnet
@@ -101,6 +102,14 @@ word2vec_model = Word2Vec(sentences= Data['freshData'], vector_size=100,window=5
 model_path = "word2vec_model"
 word2vec_model.save(model_path)
 # Let's load the model now
-loadModel = word2vec_model.load(model_path)
+loadModel = Word2Vec.load(model_path)
 # Let's get the vector of a word now
-wordVector = loadModel.vw()
+def getVectorization(cleanData, model):
+    wordVectors = [model.wv[word] for word in cleanData if word in model.wv]
+    if len (wordVectors) > 0:
+        return np.mean(wordVectors, axis = 0) # when axis is 0 it computes whole column, if 1 then whole row
+    else:
+        return  np.zeros(model.vector_size)
+# Let's apply the vectorization function to all sentences
+Data['sentences_vectorize'] = Data['freshData'].apply(lambda x: getVectorization(x,loadModel))
+print("sentences vectors:\n", Data['sentences_vectorize'].head())
