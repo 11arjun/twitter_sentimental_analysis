@@ -8,6 +8,8 @@ import contractions
 import re
 from textblob import TextBlob
 from transformers import RobertaTokenizer
+from transformers import TFRobertaModel
+from keras.layers import Input, LSTM, Dense, Dropout
 #  Bypass SSL verification
 ssl._create_default_https_context = ssl._create_unverified_context
 # Download the stopwords from NLTK
@@ -74,3 +76,11 @@ data['attention_mask'] = data['tokenized'].apply(lambda x: x['attention_mask'])
 # Print Tokenization
 # print(" Tokenize text\n ", data['clean_data'].head() ,'\n', data['tokenized'].head())
 print("Extractions Id's" , data[['input_ids', 'attention_mask']].head())
+# Now it's time to Fine Tune withe LSTM RNN model to further Process.
+# Loading the pre-train model  Roberta Model , using to understand the meaning of the sentences(Vectorization)
+roberta_model = TFRobertaModel.from_pretrained('roberta-base')
+# Defining The input Layers
+input_ids_layer =  Input(shape=(512), dtype= 'int32', name = 'input_ids')
+attention_mask_layer = Input(shape=(512), dtype = 'int32', name = 'attention_mask')
+# Let's Get the Roberta Embeddings now
+roberta_embeddings = roberta_model(input_ids_layer,attention_mask_layer)[0]
