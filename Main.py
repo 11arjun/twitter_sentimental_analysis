@@ -6,13 +6,12 @@ import emoji
 import nltk
 import contractions
 import re
-
 from sklearn.model_selection import train_test_split
 from textblob import TextBlob
 from transformers import RobertaTokenizer
 from transformers import TFRobertaModel
 from sklearn.preprocessing import LabelEncoder
-from keras.layers import Input, LSTM, Dense, Dropout
+from tensorflow.keras.layers import Input, LSTM, Dense, Dropout
 #  Bypass SSL verification
 ssl._create_default_https_context = ssl._create_unverified_context
 # Download the stopwords from NLTK
@@ -97,5 +96,5 @@ roberta_model = TFRobertaModel.from_pretrained('roberta-base')
 input_ids_layer =  Input(shape=(512), dtype= 'int32', name = 'input_ids')
 attention_mask_layer = Input(shape=(512), dtype = 'int32', name = 'attention_mask')
 # Let's Get the Roberta Embeddings now
-roberta_embeddings = roberta_model(input_ids_layer,attention_mask_layer)[0]
+roberta_embeddings = roberta_model(input_ids_layer,attention_mask_layer)[0]  
 # Lets Add  LSTM Layer for further Processing now
